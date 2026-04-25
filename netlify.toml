@@ -1,0 +1,9 @@
+[build]
+  publish = "."
+  # No build command for a plain static site; change if you add a build step
+  command = ""
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
