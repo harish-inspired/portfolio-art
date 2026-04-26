@@ -953,6 +953,29 @@ margin: 2px;
   .gallery-grid { grid-template-columns: repeat(3, 1fr); gap: 2px; }
 }
 
+/* Reduce header CTA size on small screens so the nav remains visible */
+@media (max-width: 600px) {
+  .header-inner {
+    gap: 0.6rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .header-cta {
+    padding: 0.45rem 0.9rem;
+    font-size: 0.72rem;
+    line-height: 1;
+    border-radius: calc(var(--radius-sm) - 2px);
+    white-space: nowrap;
+  }
+
+  /* Slightly reduce logo text so everything fits better on narrow screens */
+  .logo-text { font-size: 1.25rem; }
+
+  /* Ensure nav-toggle remains available when needed */
+  .nav-toggle { display: flex; margin-left: 0; }
+}
+
 /* ═══════════ Fullscreen Modal / Lightbox ═══════════ */
 .gallery-modal {
   position: fixed;
@@ -1850,7 +1873,7 @@ margin: 2px;
     bottom: 0;
     background: rgba(17,17,17,0.98);
     backdrop-filter: blur(20px);
-    display: grid;
+    display: flex;
     align-items: center;
     justify-content: center;
     transform: translateY(-100%);
@@ -1868,9 +1891,9 @@ margin: 2px;
 
   .main-nav a { font-size: 1rem; }
 
-  .header-cta { display: grid; }
+  .header-cta { display: flex; }
 
-  .nav-toggle { display: grid; }
+  .nav-toggle { display: flex; }
 
   .nav-toggle.open span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
   .nav-toggle.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
