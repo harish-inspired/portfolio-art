@@ -29,6 +29,7 @@
       requestAnimationFrame(() => {
         if (window.scrollY > 60) {
           header.classList.add('scrolled');
+
         } else {
           header.classList.remove('scrolled');
         }
@@ -88,22 +89,23 @@
   // ─── GALLERY FILTER ──────────────────────────────────────
   filterBtns.forEach(btn => {
     btn.addEventListener('click', () => {
-      // Toggle active class
       filterBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
 
       const filter = btn.dataset.filter;
 
-      galleryItems.forEach((item, i) => {
+      galleryItems.forEach((item) => {
         const cat = item.dataset.category;
         const show = filter === 'all' || cat === filter;
 
         if (show) {
           item.classList.remove('hidden');
-          item.style.transitionDelay = `${i * 60}ms`;
+          // Re-trigger reveal animation when item shown after filter
+          requestAnimationFrame(() => {
+            item.classList.add('revealed');
+          });
         } else {
           item.classList.add('hidden');
-          item.style.transitionDelay = '0ms';
         }
       });
     });
@@ -143,6 +145,9 @@
       }
     });
   }
+
+
+  
 
   // ─── COMMISSION FORM SUBMIT via FormSubmit.co ────────────
   // No account needed! The form action in index.html points to:
@@ -238,12 +243,7 @@
       el.classList.add(`reveal-delay-${i + 1}`);
     });
 
-    // Gallery items
-    document.querySelectorAll('.gallery-item').forEach((el, i) => {
-      el.classList.add('reveal');
-      if (i < 3) el.classList.add(`reveal-delay-${i + 1}`);
-    });
-
+    // Gallery items — use new revealed class via IntersectionObserver (handled below)
     // Stats
     document.querySelectorAll('.stat').forEach((el, i) => {
       el.classList.add('reveal');
@@ -280,14 +280,49 @@
   // ─── GALLERY: image load handling + lightbox modal ─────────
   const galleryGrid = document.getElementById('gallery-grid');
   const galleryImgs = Array.from(document.querySelectorAll('#gallery-grid .gallery-img-wrap img'));
+  const dotsContainer = document.getElementById('gm-dots');
 
   // mark images as loaded for fade-in
   galleryImgs.forEach(img => {
     if (img.complete) img.classList.add('loaded');
     else img.addEventListener('load', () => img.classList.add('loaded'));
-    // ensure images decode async when supported
     try { if (img.decode) img.decode().catch(() => {}); } catch (e) {}
   });
+
+  // Scroll-reveal for gallery items
+  const galleryRevealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('revealed');
+        galleryRevealObserver.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -20px 0px' });
+
+  galleryItems.forEach((item, i) => {
+    item.style.transitionDelay = `${Math.min(i, 5) * 55}ms`;
+    galleryRevealObserver.observe(item);
+  });
+
+  // Build navigation dots
+  function buildDots() {
+    if (!dotsContainer) return;
+    dotsContainer.innerHTML = '';
+    const visibleImgs = galleryImgs.filter((_, i) => !galleryItems[i].classList.contains('hidden'));
+    visibleImgs.forEach((_, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'gm-dot' + (i === 0 ? ' active' : '');
+      dot.setAttribute('aria-label', `Go to image ${i + 1}`);
+      dot.addEventListener('click', () => showIndex(i));
+      dotsContainer.appendChild(dot);
+    });
+  }
+
+  function updateDots() {
+    if (!dotsContainer) return;
+    const dots = dotsContainer.querySelectorAll('.gm-dot');
+    dots.forEach((dot, i) => dot.classList.toggle('active', i === currentIndex));
+  }
 
   const modal = document.getElementById('gallery-modal');
   const gmImage = document.getElementById('gm-image');
@@ -302,20 +337,29 @@
     currentIndex = (i + galleryImgs.length) % galleryImgs.length;
     const src = galleryImgs[currentIndex].getAttribute('src');
     const alt = galleryImgs[currentIndex].getAttribute('alt') || '';
-    gmImage.style.opacity = 0;
-    gmImage.src = src;
-    gmImage.alt = alt;
-    gmCaption.textContent = alt;
-    // small zoom-in effect
-    setTimeout(() => { gmImage.style.opacity = 1; }, 40);
+
+    // Remove zoom class, swap src, re-add to trigger animation
+    gmImage.classList.remove('gm-zoom-in');
+    gmImage.style.opacity = '0';
+
+    // Short tick before setting new src to allow opacity to register
+    setTimeout(() => {
+      gmImage.src = src;
+      gmImage.alt = alt;
+      gmCaption.textContent = alt;
+      gmImage.classList.add('gm-zoom-in');
+      gmImage.style.opacity = '';
+      updateDots();
+    }, 50);
   }
 
   function openModal(i) {
+    currentIndex = i;
+    buildDots();
     showIndex(i);
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
     document.body.style.overflow = 'hidden';
-    // focus for accessibility
     btnClose.focus();
   }
 
@@ -324,15 +368,12 @@
     modal.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
     gmImage.src = '';
+    gmImage.classList.remove('gm-zoom-in');
   }
 
   // attach click to each gallery item to open modal
   galleryItems.forEach((item, i) => {
-    item.addEventListener('click', (e) => {
-      // ignore clicks on inner anchor links
-      if (e.target.closest('a')) return;
-      openModal(i);
-    });
+    item.addEventListener('click', () => openModal(i));
   });
 
   // modal controls
@@ -350,17 +391,17 @@
 
   // click outside image closes
   modal.addEventListener('click', (e) => {
-    if (e.target === modal) closeModal();
+    if (e.target === modal || e.target === document.getElementById('gm-viewport')) closeModal();
   });
 
-  // touch / swipe support (simple)
+  // touch / swipe support
   let touchStartX = 0;
   let touchEndX = 0;
-  gmImage.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
-  gmImage.addEventListener('touchend', (e) => {
+  modal.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
+  modal.addEventListener('touchend', (e) => {
     touchEndX = e.changedTouches[0].screenX;
     const dx = touchEndX - touchStartX;
-    if (Math.abs(dx) > 40) {
+    if (Math.abs(dx) > 50) {
       if (dx > 0) showIndex(currentIndex - 1);
       else showIndex(currentIndex + 1);
     }

@@ -41,10 +41,17 @@
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   z-index: 0;
-  transition: opacity 0.5s;
+  opacity: 1;
+  transition: opacity 0.5s ease;
 }
 
-/* once img loads, hide shimmer */
+/* Hide shimmer once image is loaded */
+.gallery-img-wrap:has(img.loaded)::before {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Image stacks above shimmer */
 .gallery-img-wrap img {
   position: relative;
   z-index: 1;
