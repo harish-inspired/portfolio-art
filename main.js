@@ -277,19 +277,95 @@
     });
   });
 
-  // ─── GALLERY ITEM CLICK ──────────────────────────────────
-  galleryItems.forEach(item => {
-    const imgWrap = item.querySelector('.gallery-img-wrap');
+  // ─── GALLERY: image load handling + lightbox modal ─────────
+  const galleryGrid = document.getElementById('gallery-grid');
+  const galleryImgs = Array.from(document.querySelectorAll('#gallery-grid .gallery-img-wrap img'));
+
+  // mark images as loaded for fade-in
+  galleryImgs.forEach(img => {
+    if (img.complete) img.classList.add('loaded');
+    else img.addEventListener('load', () => img.classList.add('loaded'));
+    // ensure images decode async when supported
+    try { if (img.decode) img.decode().catch(() => {}); } catch (e) {}
+  });
+
+  const modal = document.getElementById('gallery-modal');
+  const gmImage = document.getElementById('gm-image');
+  const gmCaption = document.getElementById('gm-caption');
+  const btnClose = modal.querySelector('.gm-close');
+  const btnPrev = modal.querySelector('.gm-prev');
+  const btnNext = modal.querySelector('.gm-next');
+
+  let currentIndex = 0;
+
+  function showIndex(i) {
+    currentIndex = (i + galleryImgs.length) % galleryImgs.length;
+    const src = galleryImgs[currentIndex].getAttribute('src');
+    const alt = galleryImgs[currentIndex].getAttribute('alt') || '';
+    gmImage.style.opacity = 0;
+    gmImage.src = src;
+    gmImage.alt = alt;
+    gmCaption.textContent = alt;
+    // small zoom-in effect
+    setTimeout(() => { gmImage.style.opacity = 1; }, 40);
+  }
+
+  function openModal(i) {
+    showIndex(i);
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    // focus for accessibility
+    btnClose.focus();
+  }
+
+  function closeModal() {
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    gmImage.src = '';
+  }
+
+  // attach click to each gallery item to open modal
+  galleryItems.forEach((item, i) => {
     item.addEventListener('click', (e) => {
-      // Only navigate if clicking the item itself (not a link inside)
-      if (e.target.tagName !== 'A') {
-        document.querySelector('#commission').scrollIntoView({
-          behavior: 'smooth',
-          block: 'start'
-        });
-      }
+      // ignore clicks on inner anchor links
+      if (e.target.closest('a')) return;
+      openModal(i);
     });
   });
+
+  // modal controls
+  btnClose.addEventListener('click', closeModal);
+  btnPrev.addEventListener('click', () => showIndex(currentIndex - 1));
+  btnNext.addEventListener('click', () => showIndex(currentIndex + 1));
+
+  // keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    if (!modal.classList.contains('open')) return;
+    if (e.key === 'Escape') closeModal();
+    if (e.key === 'ArrowLeft') showIndex(currentIndex - 1);
+    if (e.key === 'ArrowRight') showIndex(currentIndex + 1);
+  });
+
+  // click outside image closes
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  // touch / swipe support (simple)
+  let touchStartX = 0;
+  let touchEndX = 0;
+  gmImage.addEventListener('touchstart', (e) => { touchStartX = e.changedTouches[0].screenX; }, { passive: true });
+  gmImage.addEventListener('touchend', (e) => {
+    touchEndX = e.changedTouches[0].screenX;
+    const dx = touchEndX - touchStartX;
+    if (Math.abs(dx) > 40) {
+      if (dx > 0) showIndex(currentIndex - 1);
+      else showIndex(currentIndex + 1);
+    }
+  }, { passive: true });
+
 
   // ─── STAT COUNTER ANIMATION ──────────────────────────────
   function animateCounters() {
