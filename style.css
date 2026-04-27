@@ -109,7 +109,7 @@ ul { list-style: none; }
   background-size: 200px 200px;
   pointer-events: none;
   z-index: 1;
-  opacity: 0.6;
+  opacity: 0.14;
 }
 
 /* ─── CONTAINER ─── */
@@ -362,6 +362,29 @@ ul { list-style: none; }
   overflow: hidden;
 }
 
+/* Full-bleed cover bar (FB-style) */
+.hero-bg-full {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  width: 100%;
+  height: 280px;
+  overflow: hidden;
+  z-index: 0;
+}
+
+.hero-bgimage-full {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+}
+
+/* Make room below the cover for the circle to overlap */
+.hero-split.container { padding-top: 160px; }
+
 .hero-bg {
   position: absolute;
   inset: 0;
@@ -510,6 +533,250 @@ ul { list-style: none; }
 
 @media (min-width: 768px) {
   .desktop-break { display: inline; }
+}
+
+/* ─── SPLIT HERO (left background + right circular portrait) ─── */
+.hero-split {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  width: 100%;
+  max-width: 1200px;
+  padding: 6rem 2rem;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+.hero-left {
+  flex: 1 1 0;
+  position: relative;
+  height: 70vh;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.hero-left .hero-bgimage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  transform: scale(1.05);
+  animation: heroZoom 20s ease-in-out infinite alternate;
+  display: block;
+}
+
+.hero-left-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(17,17,17,0.28) 0%, rgba(17,17,17,0.18) 40%, rgba(17,17,17,0.26) 100%);
+  z-index: 1;
+}
+
+.hero-right {
+  position: absolute;
+  left: 50%;
+  top: 130px; /* positioned slightly above the cover midpoint */
+  transform: translateX(-50%);
+  width: 380px;
+  height: 380px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+}
+
+.hero-circle-bg {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%) scale(1.04);
+  width: 380px;
+  height: 380px;
+  object-fit: cover;
+  border-radius: 50%;
+  z-index: 1;
+  filter: contrast(1.04) brightness(1.03);
+  box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+}
+
+.hero-circle {
+  position: absolute;
+  left: 50%;
+  bottom: 90%;
+  transform: translate(-50%, -50%);
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  padding: 8px;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(246, 246, 245, 0.95), rgba(245,200,0,0.15));
+  /* remove bright gold glow for a cleaner look */
+  box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+  border: 6px solid rgb(255, 255, 255);
+}
+
+.hero-circle > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+/* Name label below circular profile */
+.hero-name {
+  position: absolute;
+  top: calc(50% + 110px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--serif);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  z-index: 7;
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  .hero-name { top: calc(50% + 72px); font-size: 0.95rem; }
+}
+
+.hero-subtext {
+  position: absolute;
+  top: calc(50% + 138px);
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  z-index: 7;
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  .hero-subtext { top: calc(50% + 98px); font-size: 0.82rem; }
+}
+
+/* Caption block under circular profile */
+.hero-caption {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  width: 100%;
+  z-index: 4;
+  pointer-events: none;
+}
+
+.hero-caption p {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 300;
+  font-size: clamp(1rem, 2.6vw, 1.2rem);
+  line-height: 1.35;
+  color: var(--text-primary);
+  opacity: 0.95;
+  max-width: 86%;
+}
+
+.hero-caption-lead {
+  display: block;
+  font-weight: 700;
+  font-size: clamp(1.15rem, 3.8vw, 1.8rem);
+  color: var(--gold);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hero-caption-body {
+  display: block;
+  color: var(--text-muted);
+  font-weight: 300;
+}
+
+@media (max-width: 900px) {
+  .hero-caption {
+    position: relative;
+    inset: auto;
+    padding: 1rem 1rem 2rem;
+    margin-top: 8px;
+  }
+  .hero-caption p { font-size: 0.95rem; }
+  .hero-circle { width: 140px; height: 140px; }
+}
+
+/* Small attribute badges beneath hero content */
+.hero-attributes {
+  position: relative;
+  z-index: 7;
+  display: flex;
+  gap: 1.25rem;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1.25rem;
+  flex-wrap: wrap;
+  pointer-events: none;
+}
+
+.hero-attributes .attr {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-family: var(--sans);
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  background: rgba(255,255,255,0.02);
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.03);
+}
+
+.attr-emoji {
+  font-size: 1.05rem;
+  color: var(--gold);
+  line-height: 1;
+}
+
+.attr-text { font-size: 0.95rem; color: var(--text-primary); opacity: 0.95; }
+
+@media (max-width: 600px) {
+  .hero-attributes { gap: 0.6rem; margin-top: 0.9rem; }
+  .hero-attributes .attr { padding: 0.35rem 0.6rem; }
+  .attr-text { font-size: 0.85rem; }
+}
+
+/* Panel image below circular profile */
+/* panel removed (undo) */
+
+@media (max-width: 900px) {
+  /* Mobile: smaller cover height, circle overlaps lower */
+  .hero-split { flex-direction: column; padding: 4rem 1rem; }
+  .hero-bg-full { height: 180px; }
+  .hero-split.container { padding-top: 120px; }
+  .hero-left { display: none; }
+  .hero-left .hero-bgimage { display: none; }
+  .hero-bgimage-full { object-position: center top; }
+
+  .hero-right {
+    position: relative;
+    margin-top: -100px; /* move circle higher on mobile so it's above the cover midpoint */
+    left: auto; top: auto; transform: none;
+    width: 100%; height: auto; display: flex; justify-content: center; z-index: 5;
+  }
+
+  .hero-circle { width: 140px; height: 140px; }
+  .hero-circle-bg { display: none; }
 }
 
 /* ═══════════════════════════════════════════════
