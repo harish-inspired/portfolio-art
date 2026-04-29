@@ -634,6 +634,7 @@ ul { list-style: none; }
   object-fit: cover;
   border-radius: 50%;
   display: block;
+  position: absolute;
 }
 
 /* Name label below circular profile */
@@ -706,8 +707,11 @@ ul { list-style: none; }
   color: white;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  font-family: var(--serif)
+  font-family: var(--serif);
+  
             /* Extra bold/black weight */
+            position: relative;
+    padding-top: 120px;
             
 }
 
@@ -788,7 +792,8 @@ ul { list-style: none; }
     width: 100%; height: auto; display: flex; justify-content: center; z-index: 5;
   }
 
-  .hero-circle { width: 140px; height: 140px; }
+  .hero-circle { width: 140px; height: 140px;
+  top:50px; }
   .hero-circle-bg { display: none; }
 }
 
