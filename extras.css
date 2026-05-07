@@ -86,7 +86,7 @@ html {
   width: 100%;
   aspect-ratio: 16/9;
   overflow: hidden;
-  background: #222;
+  background: var(--charcoal-deep);
 }
 
 .hero-banner .hero-image {
@@ -116,8 +116,8 @@ html {
   width: 40px;
   border-radius: 8px;
   border: none;
-  color: #fff;
-  background: rgba(255,255,255,0.06);
+  color: var(--text-primary);
+  background: rgba(17,17,17,0.04);
 }
 
 .topbar-btn svg { display: block; color: #fff; }
